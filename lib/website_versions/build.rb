@@ -18,15 +18,15 @@ class LeadRepo
     path = repo_path(url)
     ensure_repo_exists(url)
     dt_str = dt.strftime("%Y-%m-%d %H:%M:%S")
-    system "cd #{path} && git checkout `git rev-list -n 1 --before=\"#{dt_str}\" master`"
+    ec "cd #{path} && git checkout `git rev-list -n 1 --before=\"#{dt_str}\" master`"
   end
   def ensure_repo_exists(url)
     FileUtils.mkdir("tmp") unless FileTest.exist?("tmp")
     path = repo_path(url)
     if !FileTest.exist?("#{path}/.git")
-      system "cd tmp && git clone #{url}"
+      ec "cd tmp && git clone #{url}"
     end 
-    system "cd #{path} && git reset --hard && git clean -df && git fetch origin"
+    ec "cd #{path} && git reset --hard && git clean -df && git fetch origin"
   end
 
   def lead_commit_dt
@@ -39,7 +39,7 @@ class LeadRepo
 
   def checkout!
     ensure_repo_exists(lead_repo)
-    system "cd #{repo_path(lead_repo)} && git checkout #{ref}"
+    ec "cd #{repo_path(lead_repo)} && git checkout #{ref}"
 
     follow_repos.each do |url|
       checkout_as_of(url,lead_commit_dt)
@@ -47,10 +47,13 @@ class LeadRepo
   end
 end
 
-
 def ec(cmd)
   puts cmd
-  system cmd
+  res = nil
+  Bundler.with_clean_env do
+    res = system cmd
+  end
+  res
 end
 
 module WebsiteVersions
@@ -63,14 +66,25 @@ module WebsiteVersions
       ec "cd tmp/website && bundle install && bundle exec rake build"
     end
 
-    def doc_urls
-      res = {}
-      #{}`git tag`.split("\n")
-      %w(v0.9.1 v0.9.8 v0.9.7 v0.9.6).each do |v|
-        cleaned = v.gsub("_","").gsub(".","")
-        res[v] = "emberdocs#{cleaned}"
+    def bucket_for_tag(v)
+      raise "no tag" unless v.to_s.strip != ''
+      cleaned = v.gsub("_","").gsub(".","").gsub("-","")
+      "emberdocs#{cleaned}"
+    end
+    def url_for_tag(v)
+      bucket = bucket_for_tag(v)
+      "http://#{bucket}.s3-website-us-east-1.amazonaws.com"
+    end
+    attr_accessor :tags
+    def tags
+      @tags ||= []
+    end
+
+    def each_tag
+      versions = ['edge'] + tags.sort.reverse
+      versions.each do |tag|
+        yield tag, bucket_for_tag(tag), url_for_tag(tag)
       end
-      res
     end
   end
 end

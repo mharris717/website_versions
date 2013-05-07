@@ -2,6 +2,9 @@
 
 require 'rubygems'
 require 'bundler'
+
+load File.join(File.dirname(__FILE__),"lib","website_versions.rb")
+
 begin
   Bundler.setup(:default, :development)
 rescue Bundler::BundlerError => e

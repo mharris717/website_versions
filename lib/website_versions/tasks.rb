@@ -16,37 +16,40 @@ def run_s3cmd(subcmd, *args)
   puts "Error running command" unless result
 end
 
-namespace :s3 do
-  task :setup => [:create_bucket, :create_website, :create_policy, :deploy]
+namespace :website_versions do
+  namespace :s3 do
+    task :setup => [:create_bucket, :create_website, :create_policy, :deploy]
 
-  task :create_bucket do
-    puts "creating #{ENV['BUCKET_URL']}"
-    run_s3cmd "mb",  ENV['BUCKET_URL']
-  end
-
-  task :create_website do
-    run_s3cmd "ws-create", ENV['BUCKET_URL']
-  end
-
-  task :create_policy do
-    Tempfile.open('emberjs-policy.json') do |f|
-      f.write bucket_policy
-      f.rewind
-      run_s3cmd "setpolicy",  f.path, ENV['BUCKET_URL']
+    task :create_bucket do
+      puts "creating #{ENV['BUCKET_URL']}"
+      run_s3cmd "mb",  ENV['BUCKET_URL']
     end
-  end
 
-  task :deploy do
-    run_s3cmd "sync", "--delete-removed", "tmp/website/build/", ENV['BUCKET_URL']
+    task :create_website do
+      run_s3cmd "ws-create", ENV['BUCKET_URL']
+    end
+
+    task :create_policy do
+      Tempfile.open('emberjs-policy.json') do |f|
+        f.write bucket_policy
+        f.rewind
+        run_s3cmd "setpolicy",  f.path, ENV['BUCKET_URL']
+      end
+    end
+
+    task :deploy do
+      run_s3cmd "sync", "--delete-removed", "tmp/website/build/", ENV['BUCKET_URL']
+    end
   end
 
   task :build do
     ref = ENV['REF']
-    ENV['BUCKET_URL'] = ("s3://"+doc_urls[ref]) || (raise "no url for #{ref}")
-    build_ref(ref)
+    bucket = WebsiteVersions.bucket_for_tag(ref)
+    ENV['BUCKET_URL'] = "s3://#{bucket}"
+    WebsiteVersions.build_ref(ref)
   end
 
-  task :full => [:build, :setup]
+  task :deploy => [:build, 's3:setup']
 end
 
 def bucket_policy
