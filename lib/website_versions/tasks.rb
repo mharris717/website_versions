@@ -22,6 +22,8 @@ namespace :versions do
     task :setup => [:write_creds, :create_bucket, :create_website, :create_policy, :deploy]
 
     task :write_creds do
+      FileUtils.mkdir("tmp") unless FileTest.exist?("tmp")
+      
       body = "[default]\naccess_key=#{ENV['S3_ACCESS_KEY_ID']}\nsecret_key=#{ENV['S3_SECRET_ACCESS_KEY']}"
       File.open("tmp/.s3cfg","w") do |f|
         f << body
