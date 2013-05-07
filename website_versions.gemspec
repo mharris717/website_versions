@@ -20,12 +20,17 @@ Gem::Specification.new do |s|
     ".document",
     ".rspec",
     "Gemfile",
+    "Gemfile.lock",
     "LICENSE.txt",
     "README.rdoc",
     "Rakefile",
+    "VERSION",
     "lib/website_versions.rb",
+    "lib/website_versions/build.rb",
+    "lib/website_versions/tasks.rb",
     "spec/spec_helper.rb",
-    "spec/website_versions_spec.rb"
+    "spec/website_versions_spec.rb",
+    "website_versions.gemspec"
   ]
   s.homepage = "http://github.com/mharris717/website_versions"
   s.licenses = ["MIT"]
