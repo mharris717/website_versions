@@ -21,6 +21,7 @@ class LeadRepo
     system "cd #{path} && git checkout `git rev-list -n 1 --before=\"#{dt_str}\" master`"
   end
   def ensure_repo_exists(url)
+    FileUtils.mkdir("tmp") unless FileTest.exist?("tmp")
     path = repo_path(url)
     if !FileTest.exist?("#{path}/.git")
       system "cd tmp && git clone #{url}"
