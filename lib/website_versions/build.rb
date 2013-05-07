@@ -40,7 +40,6 @@ class LeadRepo
   def checkout!
     ensure_repo_exists(lead_repo)
     ec "cd #{repo_path(lead_repo)} && git checkout #{ref}"
-
     follow_repos.each do |url|
       checkout_as_of(url,lead_commit_dt)
     end
@@ -48,7 +47,7 @@ class LeadRepo
 end
 
 def ec(cmd)
-  puts cmd
+  #puts cmd
   res = nil
   Bundler.with_clean_env do
     res = system cmd

@@ -9,8 +9,9 @@ def run_s3cmd(subcmd, *args)
   cmd.concat(args)
 
   cmd = Shellwords.join(cmd)
+  cmd += " --config=tmp/.s3cfg"
 
-  puts "Running command: #{cmd.inspect}"
+  #puts "Running command: #{cmd.inspect}"
   result = system cmd
 
   puts "Error running command" unless result
@@ -21,9 +22,9 @@ namespace :versions do
     task :setup => [:write_creds, :create_bucket, :create_website, :create_policy, :deploy]
 
     task :write_creds do
-      if !FileTest.exist?("~/.s3cfg")
-        body = "[default]\naccess_key=#{ENV['S3_ACCESS_KEY_ID']}\nsecret_key=#{ENV['S3_SECRET_ACCESS_KEY']}"
-        File.create "~/.s3cfg",body
+      body = "[default]\naccess_key=#{ENV['S3_ACCESS_KEY_ID']}\nsecret_key=#{ENV['S3_SECRET_ACCESS_KEY']}"
+      File.open("tmp/.s3cfg","w") do |f|
+        f << body
       end
     end
 
@@ -68,7 +69,7 @@ namespace :versions do
   end
 
   task :deploy_version => [:build_site, 's3:setup']
-  task :deploy_edge => [:build,:set_edge_ref, :setup_vars,'s3:setup']
+  task :deploy_edge => [:set_edge_ref, :setup_vars,'s3:setup']
 end
 
 def bucket_policy
