@@ -68,7 +68,8 @@ module WebsiteVersions
     def bucket_for_tag(v)
       raise "no tag" unless v.to_s.strip != ''
       cleaned = v.gsub("_","").gsub(".","").gsub("-","")
-      "emberdocs#{cleaned}"
+      #{}"emberdocs#{cleaned}"
+      "#{cleaned}.emberjs.com"
     end
     def url_for_tag(v)
       bucket = bucket_for_tag(v)
