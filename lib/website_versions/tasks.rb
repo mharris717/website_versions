@@ -9,12 +9,16 @@ def run_s3cmd(subcmd, *args)
   cmd.concat(args)
 
   cmd = Shellwords.join(cmd)
-  cmd += " --config=tmp/.s3cfg"
 
+  tmp_dir = File.expand_path("tmp")
+  cmd << " --config=#{tmp_dir}/.s3cfg"
+ 
   #puts "Running command: #{cmd.inspect}"
   result = system cmd
 
-  puts "Error running command" unless result
+  raise "Error running command #{cmd} #{result.inspect}" unless result
+
+  result
 end
 
 namespace :versions do
